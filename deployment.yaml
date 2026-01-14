@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-blog-client
+  namespace: default
+spec:
+  replicas: 1  # Số lượng container muốn chạy (chạy 1 cái trước cho nhẹ)
+  selector:
+    matchLabels:
+      app: devops-blog-client
+  template:
+    metadata:
+      labels:
+        app: devops-blog-client
+    spec:
+      containers:
+        - name: devops-blog-client
+          # ĐÂY LÀ IMAGE BẠN VỪA PUSH LÊN DOCKERHUB
+          image: thienduong2909/devops-blog-client:15 
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000 # Next.js chạy port 3000
+          resources: # Giới hạn tài nguyên để không treo máy
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
