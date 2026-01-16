@@ -16,7 +16,7 @@ spec:
       containers:
         - name: devops-blog-client
           # ĐÂY LÀ IMAGE BẠN VỪA PUSH LÊN DOCKERHUB
-          image: thienduong2909/devops-blog-client:15 
+          image: thienduong2909/devops-blog-client:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000 # Next.js chạy port 3000
