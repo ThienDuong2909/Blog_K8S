@@ -10,4 +10,4 @@ spec:
     - protocol: TCP
       port: 80       # Port mở ra bên ngoài (truy cập web bằng port này)
       targetPort: 3000 # Port bên trong container
-  type: ClusterIP # Dùng NodePort để dễ test trên máy local/VPS lẻ
+  type: NodePort # Dùng NodePort để dễ test trên máy local/VPS lẻ
