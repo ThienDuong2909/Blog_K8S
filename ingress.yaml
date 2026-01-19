@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devops-blog-ingress
+  namespace: default
+  annotations:
+    # Dòng này để tự động xin SSL từ Let's Encrypt
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # Dòng này để bắt buộc dùng HTTPS
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  rules:
+  - host: "blog.thienduong.info" 
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: devops-blog-service
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - blog.thienduong.info   
+    secretName: devops-blog-tls 
