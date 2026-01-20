@@ -4,7 +4,7 @@ metadata:
   name: devops-blog-client
   namespace: default
 spec:
-  replicas: 1  # Số lượng container muốn chạy (chạy 1 cái trước cho nhẹ)
+  replicas: 1
   selector:
     matchLabels:
       app: devops-blog-client
@@ -15,17 +15,26 @@ spec:
     spec:
       containers:
         - name: devops-blog-client
-          # ĐÂY LÀ IMAGE BẠN VỪA PUSH LÊN DOCKERHUB
+          # Jenkins will automatically update this tag (e.g., :1, :2, :3)
+          # You can leave 'latest' here as a placeholder for the first run
           image: thienduong2909/devops-blog-client:latest
+          
+          # Environment variables for Next.j
           env:
             - name: HOSTNAME
               value: "0.0.0.0"
             - name: PORT
               value: "3000"
-          imagePullPolicy: Always
+          
+          # CHANGED: Use IfNotPresent to cache images and speed up deployment
+          # Since we use unique version tags, we don't need 'Always'
+          imagePullPolicy: IfNotPresent
+          
           ports:
-            - containerPort: 3000 # Next.js chạy port 3000
-          resources: # Giới hạn tài nguyên để không treo máy
+            - containerPort: 3000
+          
+          # Resource limits to prevent OOM (Out Of Memory) issues
+          resources:
             limits:
               memory: "512Mi"
               cpu: "500m"
