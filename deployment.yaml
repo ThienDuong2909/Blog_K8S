@@ -17,7 +17,7 @@ spec:
         - name: devops-blog-client
           # Jenkins will automatically update this tag (e.g., :1, :2, :3)
           # You can leave 'latest' here as a placeholder for the first run
-          image: thienduong2909/devops-blog-client:29
+          image: thienduong2909/devops-blog-client:33
           
           # Environment variables for Next.j
           env:
