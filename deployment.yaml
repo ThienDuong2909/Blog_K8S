@@ -53,7 +53,7 @@ spec:
       containers:
         - name: devops-blog-server
           # Jenkins CI will automatically update this image tag on each build
-          image: thienduong2909/devops-blog-server:latest
+          image: thienduong2909/devops-blog-server:23
           env:
             - name: NODE_ENV
               value: "production"
