@@ -26,6 +26,31 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
+          # Startup probe: cho phép client 60s để khởi động trước khi liveness bật
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            failureThreshold: 6
+            periodSeconds: 10
+          # Liveness probe: K8s sẽ restart pod nếu /api/health không trả về 200
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 0
+            periodSeconds: 15
+            failureThreshold: 3
+            timeoutSeconds: 5
+          # Readiness probe: K8s chỉ route traffic vào pod khi nó sẵn sàng
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
           resources:
             limits:
               memory: "512Mi"
@@ -78,6 +103,31 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3001
+          # Startup probe: cho server 100s để khởi động (Prisma + DB connection)
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            failureThreshold: 10
+            periodSeconds: 10
+          # Liveness probe: K8s sẽ restart pod nếu /health không trả về 200
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 0
+            periodSeconds: 15
+            failureThreshold: 3
+            timeoutSeconds: 5
+          # Readiness probe: K8s chỉ route traffic vào pod khi DB đã kết nối xong
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
           resources:
             limits:
               memory: "512Mi"
