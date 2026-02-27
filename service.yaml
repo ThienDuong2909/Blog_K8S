@@ -1,13 +1,29 @@
+## Client Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: devops-blog-service
+  name: devops-blog-client-svc
   namespace: default
 spec:
   selector:
-    app: devops-blog-client # Phải khớp với label ở file deployment
+    app: devops-blog-client
   ports:
     - protocol: TCP
-      port: 80       # Port mở ra bên ngoài (truy cập web bằng port này)
-      targetPort: 3000 # Port bên trong container
-  type: ClusterIP # Dùng NodePort để dễ test trên máy local/VPS lẻ
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+---
+## Server Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: devops-blog-server-svc
+  namespace: default
+spec:
+  selector:
+    app: devops-blog-server
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3001
+  type: ClusterIP

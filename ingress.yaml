@@ -4,23 +4,36 @@ metadata:
   name: devops-blog-ingress
   namespace: default
   annotations:
-    # Dòng này để tự động xin SSL từ Let's Encrypt
+    # Auto-issue SSL from Let's Encrypt via cert-manager
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    # Dòng này để bắt buộc dùng HTTPS
+    # Use HTTPS entrypoint only
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
 spec:
   rules:
-  - host: "blog.thienduong.info" 
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: devops-blog-service
-            port:
-              number: 80
+    # Frontend (Next.js)
+    - host: "blog.thienduong.info"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: devops-blog-client-svc
+                port:
+                  number: 80
+    # Backend API (Node.js)
+    - host: "api.thienduong.info"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: devops-blog-server-svc
+                port:
+                  number: 80
   tls:
-  - hosts:
-    - blog.thienduong.info   
-    secretName: devops-blog-tls 
+    - hosts:
+        - blog.thienduong.info
+        - api.thienduong.info
+      secretName: devops-blog-tls

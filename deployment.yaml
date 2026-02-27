@@ -1,3 +1,4 @@
+## Client Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,25 +16,68 @@ spec:
     spec:
       containers:
         - name: devops-blog-client
-          # Jenkins will automatically update this tag (e.g., :1, :2, :3)
-          # You can leave 'latest' here as a placeholder for the first run
+          # Jenkins CI will automatically update this image tag on each build
           image: thienduong2909/devops-blog-client:latest
-          
-          # Environment variables for Next.j
           env:
             - name: HOSTNAME
               value: "0.0.0.0"
             - name: PORT
               value: "3000"
-          
-          # CHANGED: Use IfNotPresent to cache images and speed up deployment
-          # Since we use unique version tags, we don't need 'Always'
           imagePullPolicy: IfNotPresent
-          
           ports:
             - containerPort: 3000
-          
-          # Resource limits to prevent OOM (Out Of Memory) issues
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+---
+## Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-blog-server
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devops-blog-server
+  template:
+    metadata:
+      labels:
+        app: devops-blog-server
+    spec:
+      containers:
+        - name: devops-blog-server
+          # Jenkins CI will automatically update this image tag on each build
+          image: thienduong2909/devops-blog-server:latest
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3001"
+            # Sensitive env vars loaded from K8s Secret (devops-blog-server-secret)
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: devops-blog-server-secret
+                  key: DATABASE_URL
+            - name: JWT_ACCESS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: devops-blog-server-secret
+                  key: JWT_ACCESS_SECRET
+            - name: JWT_REFRESH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: devops-blog-server-secret
+                  key: JWT_REFRESH_SECRET
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3001
           resources:
             limits:
               memory: "512Mi"
