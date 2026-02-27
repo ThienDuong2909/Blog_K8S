@@ -22,7 +22,7 @@ spec:
                 port:
                   number: 80
     # Backend API (Node.js)
-    - host: "api.thienduong.info"
+    - host: "api.blog.thienduong.info"
       http:
         paths:
           - path: /
@@ -35,5 +35,5 @@ spec:
   tls:
     - hosts:
         - blog.thienduong.info
-        - api.thienduong.info
+        - api.blog.thienduong.info
       secretName: devops-blog-tls
