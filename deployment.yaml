@@ -29,14 +29,14 @@ spec:
           # Startup probe: cho phép client 60s để khởi động trước khi liveness bật
           startupProbe:
             httpGet:
-              path: /api/health
+              path: /
               port: 3000
             failureThreshold: 6
             periodSeconds: 10
-          # Liveness probe: K8s sẽ restart pod nếu /api/health không trả về 200
+          # Liveness probe: dùng '/' tạm thời cho đến khi image mới có /api/health
           livenessProbe:
             httpGet:
-              path: /api/health
+              path: /
               port: 3000
             initialDelaySeconds: 0
             periodSeconds: 15
@@ -45,7 +45,7 @@ spec:
           # Readiness probe: K8s chỉ route traffic vào pod khi nó sẵn sàng
           readinessProbe:
             httpGet:
-              path: /api/health
+              path: /
               port: 3000
             initialDelaySeconds: 0
             periodSeconds: 10
