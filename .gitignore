@@ -1,3 +1,4 @@
 ﻿secret.yaml
 K8S_EXPLAINED.md
 traefik-redirect.yaml
+prometheus-values.yaml

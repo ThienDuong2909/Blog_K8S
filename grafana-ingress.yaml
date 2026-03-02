@@ -1,0 +1,35 @@
+# ============================================================
+# Grafana Ingress — expose Grafana qua HTTPS
+# Subdomain: grafana.thienduong.info
+#
+# Yêu cầu:
+#   1. DNS: trỏ grafana.thienduong.info → IP VPS (103.110.85.87)
+#   2. cert-manager + ClusterIssuer letsencrypt-prod đã cài ✅
+#   3. kube-prometheus-stack đã cài ✅
+#
+# Apply: kubectl apply -f k8s/grafana-ingress.yaml
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  namespace: monitoring
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  rules:
+    - host: "grafana.thienduong.info"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kube-prometheus-stack-grafana
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - grafana.thienduong.info
+      secretName: grafana-tls
