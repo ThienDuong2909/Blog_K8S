@@ -8,7 +8,8 @@ spec:
   selector:
     app: devops-blog-client
   ports:
-    - protocol: TCP
+    - name: http # Bắt buộc có name để ServiceMonitor (Phase 2) có thể reference
+      protocol: TCP
       port: 80
       targetPort: 3000
   type: ClusterIP
@@ -23,7 +24,8 @@ spec:
   selector:
     app: devops-blog-server
   ports:
-    - protocol: TCP
+    - name: http # Bắt buộc có name để ServiceMonitor (Phase 2) có thể reference
+      protocol: TCP
       port: 80
       targetPort: 3001
   type: ClusterIP
