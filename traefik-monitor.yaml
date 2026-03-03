@@ -1,0 +1,31 @@
+# =====================================================
+# PodMonitor: Cho phép Prometheus scrape Traefik metrics
+# =====================================================
+# Traefik expose metrics tại port 9100 (container port "metrics")
+# nhưng Prometheus chưa biết vì không có ServiceMonitor/PodMonitor
+#
+# Apply: kubectl apply -f k8s/traefik-monitor.yaml
+# Verify: kubectl get podmonitor -n monitoring
+# =====================================================
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: traefik-monitor
+  namespace: monitoring
+  labels:
+    # Label này bắt buộc để Prometheus Operator tìm thấy PodMonitor
+    release: kube-prometheus-stack
+spec:
+  # Tìm pod trong namespace kube-system
+  namespaceSelector:
+    matchNames:
+      - kube-system
+  # Chọn pod Traefik theo label
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: traefik
+  # Cấu hình endpoint scrape
+  podMetricsEndpoints:
+    - port: metrics # Tên port container (containerPort name: metrics)
+      path: /metrics # Path expose metrics
+      interval: 30s # Scrape mỗi 30 giây
