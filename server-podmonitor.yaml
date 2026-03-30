@@ -1,0 +1,31 @@
+# ============================================================
+# PodMonitor — Prometheus tự động scrape /metrics của server-nodejs
+#
+# Cách hoạt động:
+#   1. Prometheus (kube-prometheus-stack) tìm PodMonitor này
+#   2. Scrape endpoint /metrics trên port 3001 của server pod
+#   3. Data xuất hiện trong Grafana → Explore → Prometheus
+#
+# Apply: kubectl apply -f k8s/server-podmonitor.yaml
+# ============================================================
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: devops-blog-server
+  namespace: monitoring # Phải cùng namespace với Prometheus
+  labels:
+    release: kube-prometheus-stack # Label để Prometheus operator pick up
+spec:
+  namespaceSelector:
+    matchNames:
+      - default # Namespace của server pod
+
+  selector:
+    matchLabels:
+      app: devops-blog-server # Label của server pod
+
+  podMetricsEndpoints:
+    - port: http # Tên port trong pod spec
+      path: /metrics
+      interval: 15s # Scrape mỗi 15 giây
+      scrapeTimeout: 10s

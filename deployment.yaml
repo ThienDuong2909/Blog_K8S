@@ -6,7 +6,17 @@ metadata:
   namespace: default
 spec:
   replicas: 1
-  revisionHistoryLimit: 3
+  revisionHistoryLimit: 5
+
+  # Zero-downtime rolling update:
+  # maxSurge: 1     → tạo pod MỚI trước (tạm thời có 2 pods)
+  # maxUnavailable: 0 → KHÔNG kill pod cũ cho đến khi pod mới qua readinessProbe
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
   selector:
     matchLabels:
       app: devops-blog-client
@@ -68,7 +78,17 @@ metadata:
   namespace: default
 spec:
   replicas: 1
-  revisionHistoryLimit: 3
+  revisionHistoryLimit: 5
+
+  # Zero-downtime rolling update:
+  # maxSurge: 1     → tạo pod MỚI trước (tạm thời có 2 pods)
+  # maxUnavailable: 0 → KHÔNG kill pod cũ cho đến khi pod mới qua readinessProbe
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
   selector:
     matchLabels:
       app: devops-blog-server
@@ -104,7 +124,8 @@ spec:
                   key: JWT_REFRESH_SECRET
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 3001
+            - name: http
+              containerPort: 3001
           # Startup probe: cho server 100s để khởi động (Prisma + DB connection)
           startupProbe:
             httpGet:

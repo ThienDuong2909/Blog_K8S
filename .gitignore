@@ -4,3 +4,4 @@ traefik-redirect.yaml
 prometheus-values.yaml
 grafana-ingress.yaml
 traefik-monitor.yaml
+loki-values.yaml

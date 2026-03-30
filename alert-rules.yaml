@@ -1,0 +1,243 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: devops-blog-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack # Bắt buộc — Prometheus operator dùng label này để pick up rule
+    app: kube-prometheus-stack
+spec:
+  groups:
+    # ── GROUP 1: SERVICE AVAILABILITY ────────────────────────────────────────
+    - name: service.availability
+      interval: 30s # Evaluate mỗi 30 giây
+      rules:
+        # Pod bị crash loop (restart quá nhiều)
+        # - alert: PodCrashLooping
+        #   expr: |
+        #     increase(kube_pod_container_status_restarts_total{
+        #       namespace="default",
+        #       pod=~"devops-blog.*"
+        #     }[15m]) > 3
+        #   for: 1m
+        #   labels:
+        #     severity: critical
+        #     team: devops
+        #   annotations:
+        #     summary: "🔴 Pod {{ $labels.pod }} đang crash loop"
+        #     description: |
+        #       Pod {{ $labels.pod }} trong namespace {{ $labels.namespace }}
+        #       đã restart {{ $value }} lần trong 15 phút qua.
+        #       Kiểm tra logs: kubectl logs {{ $labels.pod }} -n {{ $labels.namespace }} --previous
+
+        # Pod không ở trạng thái Running
+        # - alert: PodNotRunning
+        #   expr: |
+        #     kube_pod_status_phase{
+        #       namespace="default",
+        #       pod=~"devops-blog.*",
+        #       phase!="Running"
+        #     } == 1
+        #   for: 3m
+        #   labels:
+        #     severity: critical
+        #     team: devops
+        #   annotations:
+        #     summary: "🔴 Pod {{ $labels.pod }} không Running ({{ $labels.phase }})"
+        #     description: |
+        #       Pod {{ $labels.pod }} đang ở trạng thái {{ $labels.phase }}.
+        #       Kiểm tra: kubectl describe pod {{ $labels.pod }} -n default
+
+        # Deployment có available replicas < desired
+        # - alert: DeploymentUnavailable
+        #   expr: |
+        #     kube_deployment_status_replicas_available{
+        #       namespace="default",
+        #       deployment=~"devops-blog.*"
+        #     } < kube_deployment_spec_replicas{
+        #       namespace="default",
+        #       deployment=~"devops-blog.*"
+        #     }
+        #   for: 2m
+        #   labels:
+        #     severity: warning
+        #     team: devops
+        #   annotations:
+        #     summary: "⚠️ Deployment {{ $labels.deployment }} thiếu replicas"
+        #     description: |
+        #       {{ $labels.deployment }} chỉ có {{ $value }} pod available,
+        #       cần {{ $labels.replicas }} pod.
+
+    # ── GROUP 2: API PERFORMANCE ──────────────────────────────────────────────
+    - name: api.performance
+      interval: 60s
+      rules:
+        # Error rate cao bất thường (4xx + 5xx > 10%)
+        - alert: HighAPIErrorRate
+          expr: |
+            (
+              sum(rate(http_requests_total{
+                job="devops-blog-server",
+                status_code=~"[45].."
+              }[5m]))
+              /
+              sum(rate(http_requests_total{
+                job="devops-blog-server"
+              }[5m]))
+            ) * 100 > 10
+          for: 5m
+          labels:
+            severity: warning
+            team: devops
+          annotations:
+            summary: '⚠️ API Error Rate cao: {{ $value | printf "%.1f" }}%'
+            description: |
+              Tỷ lệ lỗi 4xx/5xx đang ở {{ $value | printf "%.1f" }}% (ngưỡng: 10%).
+              Kiểm tra Grafana → API Performance → Error Rate panel.
+
+        # 5xx errors xuất hiện (server-side errors)
+        - alert: High5xxErrors
+          expr: |
+            sum(rate(http_requests_total{
+              job="devops-blog-server",
+              status_code=~"5.."
+            }[5m])) * 60 > 5
+          for: 3m
+          labels:
+            severity: critical
+            team: devops
+          annotations:
+            summary: '🔴 Server trả về 5xx errors: {{ $value | printf "%.0f" }} lỗi/phút'
+            description: |
+              Có {{ $value | printf "%.0f" }} lỗi 5xx mỗi phút.
+              Kiểm tra server logs: kubectl logs -n default deployment/devops-blog-server --tail=100
+
+        # P95 Latency quá cao
+        - alert: HighP95Latency
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le) (
+                rate(http_request_duration_ms_bucket{
+                  job="devops-blog-server"
+                }[5m])
+              )
+            ) > 1000
+          for: 5m
+          labels:
+            severity: warning
+            team: devops
+          annotations:
+            summary: '⚠️ P95 Latency cao: {{ $value | printf "%.0f" }}ms'
+            description: |
+              95% requests đang mất hơn {{ $value | printf "%.0f" }}ms (ngưỡng: 1000ms).
+              Xem route chậm nhất trong Grafana → Per-Route Deep Dive.
+
+    # ── GROUP 3: NODE.JS RUNTIME ──────────────────────────────────────────────
+    - name: nodejs.runtime
+      interval: 60s
+      rules:
+        # Heap memory quá cao — nguy cơ OOM
+        - alert: NodeJSHighHeapUsage
+          expr: |
+            nodejs_heap_size_used_bytes{job="devops-blog-server"}
+            / nodejs_heap_size_total_bytes{job="devops-blog-server"}
+            * 100 > 85
+          for: 5m
+          labels:
+            severity: warning
+            team: devops
+          annotations:
+            summary: '⚠️ Node.js Heap Usage cao: {{ $value | printf "%.1f" }}%'
+            description: |
+              Heap đang dùng {{ $value | printf "%.1f" }}% total heap (ngưỡng: 85%).
+              Có thể là memory leak. Theo dõi xu hướng trong Grafana → Node.js Runtime.
+
+        # Heap tuyệt đối quá lớn (> 450MB trong giới hạn 512MB)
+        - alert: NodeJSHeapCritical
+          expr: |
+            nodejs_heap_size_used_bytes{job="devops-blog-server"} > 471859200
+          for: 2m
+          labels:
+            severity: critical
+            team: devops
+          annotations:
+            summary: "🔴 Node.js Heap gần đầy: {{ $value | humanize1024 }}B"
+            description: |
+              Heap hiện tại: {{ $value | humanize1024 }}B / 512MB limit.
+              Pod sắp bị OOMKilled! Restart ngay: kubectl rollout restart deployment/devops-blog-server -n default
+
+        # Event loop lag quá cao — Node.js bị blocking
+        - alert: NodeJSEventLoopLag
+          expr: |
+            nodejs_eventloop_lag_seconds{job="devops-blog-server"} > 0.5
+          for: 3m
+          labels:
+            severity: warning
+            team: devops
+          annotations:
+            summary: '⚠️ Event Loop Lag cao: {{ $value | printf "%.0f" }}ms'
+            description: |
+              Event loop đang bị block {{ $value | printf "%.0f" }}s.
+              Nguyên nhân: heavy synchronous code, CPU-intensive operations.
+
+    # ── GROUP 4: INFRASTRUCTURE ───────────────────────────────────────────────
+    - name: infrastructure
+      interval: 60s
+      rules:
+        # Node RAM cao
+        - alert: NodeHighMemoryUsage
+          expr: |
+            (
+              node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes
+            ) / node_memory_MemTotal_bytes * 100 > 85
+          for: 5m
+          labels:
+            severity: warning
+            team: devops
+          annotations:
+            summary: '⚠️ VPS RAM Usage: {{ $value | printf "%.1f" }}%'
+            description: |
+              VPS đang dùng {{ $value | printf "%.1f" }}% RAM (ngưỡng: 85%).
+
+        # Node CPU cao liên tục
+        - alert: NodeHighCPUUsage
+          expr: |
+            100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+          for: 10m
+          labels:
+            severity: warning
+            team: devops
+          annotations:
+            summary: '⚠️ VPS CPU Usage: {{ $value | printf "%.1f" }}%'
+            description: |
+              CPU đang ở {{ $value | printf "%.1f" }}% trong 10 phút (ngưỡng: 80%).
+
+        # Disk space sắp hết
+        - alert: NodeDiskSpaceLow
+          expr: |
+            (
+              node_filesystem_avail_bytes{mountpoint="/", fstype!="tmpfs"}
+              / node_filesystem_size_bytes{mountpoint="/", fstype!="tmpfs"}
+            ) * 100 < 15
+          for: 5m
+          labels:
+            severity: critical
+            team: devops
+          annotations:
+            summary: '🔴 Disk Space còn {{ $value | printf "%.1f" }}%'
+            description: |
+              Chỉ còn {{ $value | printf "%.1f" }}% disk space (ngưỡng: 15%).
+              Dọn dẹp: docker system prune -af
+
+        # Prometheus target down
+        - alert: PrometheusTargetDown
+          expr: up{job="devops-blog-server"} == 0
+          for: 2m
+          labels:
+            severity: critical
+            team: devops
+          annotations:
+            summary: "🔴 Prometheus không scrape được devops-blog-server"
+            description: |
+              Target {{ $labels.instance }} đã down 2 phút.
+              Kiểm tra: kubectl get pod -n default -l app=devops-blog-server

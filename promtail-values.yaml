@@ -1,0 +1,95 @@
+# ============================================================
+# Promtail Helm Values — Ship logs từ tất cả K8s pods → Loki 3.x
+#
+# Cài đặt:
+#   helm install promtail grafana/promtail \
+#     --namespace monitoring \
+#     --values promtail-values.yaml
+# ============================================================
+
+# Push logs đến Loki 3.x
+config:
+  logLevel: info
+  serverPort: 3101
+
+  clients:
+    - url: http://loki-gateway.monitoring.svc.cluster.local/loki/api/v1/push
+
+  positions:
+    filename: /run/promtail/positions.yaml
+
+  scrape_configs:
+    # ── Tất cả K8s pod logs ─────────────────────────────────
+    - job_name: kubernetes-pods
+      pipeline_stages:
+        - cri: {} # Parse containerd log format
+
+      kubernetes_sd_configs:
+        - role: pod
+
+      relabel_configs:
+        # Gắn labels từ K8s metadata
+        - source_labels: [__meta_kubernetes_namespace]
+          target_label: namespace
+        - source_labels: [__meta_kubernetes_pod_name]
+          target_label: pod
+        - source_labels: [__meta_kubernetes_container_name]
+          target_label: container
+        - source_labels: [__meta_kubernetes_pod_label_app]
+          target_label: app
+        - source_labels: [__meta_kubernetes_node_name]
+          target_label: node
+
+        # Path đến log file (containerd format)
+        - source_labels:
+            - __meta_kubernetes_pod_uid
+            - __meta_kubernetes_pod_container_name
+          separator: "/"
+          target_label: __path__
+          replacement: /var/log/pods/*$1*/$2/*.log
+
+    # ── Traefik access logs (từ STDOUT) ─────────────────────
+    - job_name: traefik-access
+      pipeline_stages:
+        - cri: {}
+        - json:
+            expressions:
+              ClientAddr: ClientAddr
+              RequestMethod: RequestMethod
+              RequestPath: RequestPath
+              DownstreamStatus: DownstreamStatus
+              Duration: Duration
+              RequestUserAgent: RequestUserAgent
+              RequestHost: RequestHost
+        - labels:
+            RequestMethod:
+            DownstreamStatus:
+            RequestHost:
+
+      kubernetes_sd_configs:
+        - role: pod
+
+      relabel_configs:
+        # Chỉ lấy Traefik pod trong kube-system
+        - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+          action: keep
+          regex: traefik
+        - source_labels: [__meta_kubernetes_namespace]
+          action: keep
+          regex: kube-system
+        - target_label: job
+          replacement: traefik-access
+        - source_labels:
+            - __meta_kubernetes_pod_uid
+            - __meta_kubernetes_pod_container_name
+          separator: "/"
+          target_label: __path__
+          replacement: /var/log/pods/*$1*/$2/*.log
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
