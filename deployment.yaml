@@ -34,6 +34,13 @@ spec:
               value: "0.0.0.0"
             - name: PORT
               value: "3000"
+            # Internal API URL for server-side calls (sitemap, generateMetadata)
+            # Uses K8s service DNS — client pod can reach server pod internally
+            - name: INTERNAL_API_URL
+              value: "http://devops-blog-server-svc"
+            # Canonical site URL for SEO meta tags, sitemap, robots.txt
+            - name: NEXT_PUBLIC_SITE_URL
+              value: "https://blog.thienduong.info"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
