@@ -107,12 +107,24 @@ spec:
       containers:
         - name: devops-blog-server
           # Jenkins CI will automatically update this image tag on each build
-          image: thienduong2909/devops-blog-server:54
+          image: thienduong2909/devops-blog-server:60
           env:
             - name: NODE_ENV
               value: "production"
             - name: PORT
               value: "3001"
+            - name: APP_URL
+              value: "https://blog.thienduong.info"
+            - name: CORS_ORIGIN
+              value: "https://blog.thienduong.info,https://www.blog.thienduong.info"
+            - name: TRUST_PROXY
+              value: "1"
+            - name: LOG_FORMAT
+              value: "pretty"
+            - name: LOG_SKIP_HEALTH
+              value: "true"
+            - name: LOG_ONLY_API
+              value: "true"
             # Sensitive env vars loaded from K8s Secret (devops-blog-server-secret)
             - name: DATABASE_URL
               valueFrom:
@@ -129,6 +141,11 @@ spec:
                 secretKeyRef:
                   name: devops-blog-server-secret
                   key: JWT_REFRESH_SECRET
+            - name: JWT_MFA_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: devops-blog-server-secret
+                  key: JWT_MFA_SECRET
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
