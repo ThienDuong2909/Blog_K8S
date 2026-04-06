@@ -113,10 +113,44 @@ spec:
               value: "production"
             - name: PORT
               value: "3001"
+            - name: API_PREFIX
+              value: "api/v1"
             - name: APP_URL
               value: "https://blog.thienduong.info"
             - name: CORS_ORIGIN
               value: "https://blog.thienduong.info,https://www.blog.thienduong.info"
+            - name: RATE_LIMIT_WINDOW_MS
+              value: "60000"
+            - name: RATE_LIMIT_MAX_REQUESTS
+              value: "100"
+            - name: SWAGGER_ENABLED
+              value: "false"
+            - name: JWT_ACCESS_EXPIRES_IN
+              value: "15m"
+            - name: JWT_REFRESH_EXPIRES_IN
+              value: "7d"
+            - name: JWT_MFA_CHALLENGE_EXPIRES_IN
+              value: "10m"
+            - name: SMTP_HOST
+              value: "mail.thienduong.info"
+            - name: SMTP_PORT
+              value: "465"
+            - name: SMTP_SECURE
+              value: "true"
+            - name: SMTP_USER
+              value: "dailydevops@thienduong.info"
+            - name: CONTACT_INBOX
+              value: "dailydevops@thienduong.info"
+            - name: EMAIL_FROM
+              value: "DevOps Daily <dailydevops@thienduong.info>"
+            - name: S3_ENDPOINT
+              value: "https://vn-fpt.azcloudstorage.com"
+            - name: S3_REGION
+              value: "auto"
+            - name: S3_BUCKET
+              value: "dailydevops"
+            - name: SENTRY_TRACES_SAMPLE_RATE
+              value: "0"
             - name: TRUST_PROXY
               value: "1"
             - name: LOG_FORMAT
@@ -146,6 +180,26 @@ spec:
                 secretKeyRef:
                   name: devops-blog-server-secret
                   key: JWT_MFA_SECRET
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: devops-blog-server-secret
+                  key: SMTP_PASS
+            - name: S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: devops-blog-server-secret
+                  key: S3_ACCESS_KEY_ID
+            - name: S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: devops-blog-server-secret
+                  key: S3_SECRET_ACCESS_KEY
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: devops-blog-server-secret
+                  key: SENTRY_DSN
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

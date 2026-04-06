@@ -5,3 +5,4 @@ prometheus-values.yaml
 grafana-ingress.yaml
 traefik-monitor.yaml
 loki-values.yaml
+k3s-config.yaml
