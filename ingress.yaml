@@ -11,7 +11,7 @@ metadata:
 spec:
   rules:
     # Frontend (Next.js)
-    - host: "blog.thienduong.info"
+    - host: "dailydevops.blog"
       http:
         paths:
           - path: /
@@ -22,7 +22,7 @@ spec:
                 port:
                   number: 80
     # Backend API (Node.js)
-    - host: "api.blog.thienduong.info"
+    - host: "api.dailydevops.blog"
       http:
         paths:
           - path: /
@@ -34,6 +34,6 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - blog.thienduong.info
-        - api.blog.thienduong.info
+        - dailydevops.blog
+        - api.dailydevops.blog
       secretName: devops-blog-tls

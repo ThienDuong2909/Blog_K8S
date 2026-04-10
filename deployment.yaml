@@ -40,7 +40,7 @@ spec:
               value: "http://devops-blog-server-svc"
             # Canonical site URL for SEO meta tags, sitemap, robots.txt
             - name: NEXT_PUBLIC_SITE_URL
-              value: "https://blog.thienduong.info"
+              value: "https://dailydevops.blog"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
@@ -116,9 +116,9 @@ spec:
             - name: API_PREFIX
               value: "api/v1"
             - name: APP_URL
-              value: "https://blog.thienduong.info"
+              value: "https://dailydevops.blog"
             - name: CORS_ORIGIN
-              value: "https://blog.thienduong.info,https://www.blog.thienduong.info"
+              value: "https://dailydevops.blog,https://www.dailydevops.blog"
             - name: RATE_LIMIT_WINDOW_MS
               value: "60000"
             - name: RATE_LIMIT_MAX_REQUESTS
