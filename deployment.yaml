@@ -200,13 +200,11 @@ spec:
                 secretKeyRef:
                   name: devops-blog-server-secret
                   key: SENTRY_DSN
-            - name: GEMINI_API_KEY
+            - name: OPENROUTER_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: devops-blog-server-secret
-                  key: GEMINI_API_KEY
-            - name: GEMINI_IMAGE_MODEL
-              value: "gemini-2.5-flash-image"
+                  key: OPENROUTER_API_KEY
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
