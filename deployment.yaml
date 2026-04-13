@@ -28,7 +28,7 @@ spec:
       containers:
         - name: devops-blog-client
           # Jenkins CI will automatically update this image tag on each build
-          image: thienduong2909/devops-blog-client:118
+          image: thienduong2909/devops-blog-client:150
           env:
             - name: HOSTNAME
               value: "0.0.0.0"
@@ -107,7 +107,7 @@ spec:
       containers:
         - name: devops-blog-server
           # Jenkins CI will automatically update this image tag on each build
-          image: thienduong2909/devops-blog-server:78
+          image: thienduong2909/devops-blog-server:99
           env:
             - name: NODE_ENV
               value: "production"
