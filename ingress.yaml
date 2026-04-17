@@ -8,6 +8,8 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     # Use HTTPS entrypoint only
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    # Enable Gzip/Brotli compression middleware
+    traefik.ingress.kubernetes.io/router.middlewares: default-compress@kubernetescrd
 spec:
   rules:
     # Frontend (Next.js)
