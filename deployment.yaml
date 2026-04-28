@@ -211,10 +211,7 @@ spec:
                   name: devops-blog-server-secret
                   key: GEMINI_API_KEY
             - name: GEMINI_TEXT_MODEL
-              valueFrom:
-                secretKeyRef:
-                  name: devops-blog-server-secret
-                  key: GEMINI_TEXT_MODEL
+              value: "gemini-3-flash-preview"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
