@@ -205,6 +205,13 @@ spec:
                 secretKeyRef:
                   name: devops-blog-server-secret
                   key: OPENROUTER_API_KEY
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: devops-blog-server-secret
+                  key: GEMINI_API_KEY
+            - name: GEMINI_TEXT_MODEL
+              value: "gemini-2.0-flash"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
