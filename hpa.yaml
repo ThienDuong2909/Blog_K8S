@@ -9,7 +9,7 @@ spec:
     kind: Deployment
     name: devops-blog-client
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 6
   metrics:
   - type: Resource
     resource:
@@ -29,7 +29,7 @@ spec:
     kind: Deployment
     name: devops-blog-server
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 4
   metrics:
   - type: Resource
     resource:
