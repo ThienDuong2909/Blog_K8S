@@ -1,0 +1,11 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: global-rate-limit
+  namespace: default
+spec:
+  rateLimit:
+    average: 100  # Cho phép trung bình 100 requests/giây mỗi IP
+    burst: 200    # Cho phép nhồi một lúc tối đa 200 requests/giây (bảo vệ front-end load nhiều file)
+    sourceCriterion:
+      ipStrategy: {} # Tính theo IP người dùng
