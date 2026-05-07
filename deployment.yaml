@@ -28,7 +28,7 @@ spec:
       containers:
         - name: devops-blog-client
           # Jenkins CI will automatically update this image tag on each build
-          image: thienduong2909/devops-blog-client:152
+          image: thienduong2909/devops-blog-client:190
           env:
             - name: HOSTNAME
               value: "0.0.0.0"
@@ -107,7 +107,7 @@ spec:
       containers:
         - name: devops-blog-server
           # Jenkins CI will automatically update this image tag on each build
-          image: thienduong2909/devops-blog-server:109
+          image: thienduong2909/devops-blog-server:121
           env:
             - name: NODE_ENV
               value: "production"
@@ -205,6 +205,13 @@ spec:
                 secretKeyRef:
                   name: devops-blog-server-secret
                   key: OPENROUTER_API_KEY
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: devops-blog-server-secret
+                  key: GEMINI_API_KEY
+            - name: GEMINI_TEXT_MODEL
+              value: "gemini-2.0-flash"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
