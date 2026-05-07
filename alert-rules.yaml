@@ -13,60 +13,60 @@ spec:
       interval: 30s # Evaluate mỗi 30 giây
       rules:
         # Pod bị crash loop (restart quá nhiều)
-        # - alert: PodCrashLooping
-        #   expr: |
-        #     increase(kube_pod_container_status_restarts_total{
-        #       namespace="default",
-        #       pod=~"devops-blog.*"
-        #     }[15m]) > 3
-        #   for: 1m
-        #   labels:
-        #     severity: critical
-        #     team: devops
-        #   annotations:
-        #     summary: "🔴 Pod {{ $labels.pod }} đang crash loop"
-        #     description: |
-        #       Pod {{ $labels.pod }} trong namespace {{ $labels.namespace }}
-        #       đã restart {{ $value }} lần trong 15 phút qua.
-        #       Kiểm tra logs: kubectl logs {{ $labels.pod }} -n {{ $labels.namespace }} --previous
+        - alert: PodCrashLooping
+          expr: |
+            increase(kube_pod_container_status_restarts_total{
+              namespace="default",
+              pod=~"devops-blog.*"
+            }[15m]) > 3
+          for: 1m
+          labels:
+            severity: critical
+            team: devops
+          annotations:
+            summary: "🔴 Pod {{ $labels.pod }} đang crash loop"
+            description: |
+              Pod {{ $labels.pod }} trong namespace {{ $labels.namespace }}
+              đã restart {{ $value }} lần trong 15 phút qua.
+              Kiểm tra logs: kubectl logs {{ $labels.pod }} -n {{ $labels.namespace }} --previous
 
         # Pod không ở trạng thái Running
-        # - alert: PodNotRunning
-        #   expr: |
-        #     kube_pod_status_phase{
-        #       namespace="default",
-        #       pod=~"devops-blog.*",
-        #       phase!="Running"
-        #     } == 1
-        #   for: 3m
-        #   labels:
-        #     severity: critical
-        #     team: devops
-        #   annotations:
-        #     summary: "🔴 Pod {{ $labels.pod }} không Running ({{ $labels.phase }})"
-        #     description: |
-        #       Pod {{ $labels.pod }} đang ở trạng thái {{ $labels.phase }}.
-        #       Kiểm tra: kubectl describe pod {{ $labels.pod }} -n default
+        - alert: PodNotRunning
+          expr: |
+            kube_pod_status_phase{
+              namespace="default",
+              pod=~"devops-blog.*",
+              phase!="Running"
+            } == 1
+          for: 3m
+          labels:
+            severity: critical
+            team: devops
+          annotations:
+            summary: "🔴 Pod {{ $labels.pod }} không Running ({{ $labels.phase }})"
+            description: |
+              Pod {{ $labels.pod }} đang ở trạng thái {{ $labels.phase }}.
+              Kiểm tra: kubectl describe pod {{ $labels.pod }} -n default
 
         # Deployment có available replicas < desired
-        # - alert: DeploymentUnavailable
-        #   expr: |
-        #     kube_deployment_status_replicas_available{
-        #       namespace="default",
-        #       deployment=~"devops-blog.*"
-        #     } < kube_deployment_spec_replicas{
-        #       namespace="default",
-        #       deployment=~"devops-blog.*"
-        #     }
-        #   for: 2m
-        #   labels:
-        #     severity: warning
-        #     team: devops
-        #   annotations:
-        #     summary: "⚠️ Deployment {{ $labels.deployment }} thiếu replicas"
-        #     description: |
-        #       {{ $labels.deployment }} chỉ có {{ $value }} pod available,
-        #       cần {{ $labels.replicas }} pod.
+        - alert: DeploymentUnavailable
+          expr: |
+            kube_deployment_status_replicas_available{
+              namespace="default",
+              deployment=~"devops-blog.*"
+            } < kube_deployment_spec_replicas{
+              namespace="default",
+              deployment=~"devops-blog.*"
+            }
+          for: 2m
+          labels:
+            severity: warning
+            team: devops
+          annotations:
+            summary: "⚠️ Deployment {{ $labels.deployment }} thiếu replicas"
+            description: |
+              {{ $labels.deployment }} chỉ có {{ $value }} pod available,
+              cần {{ $labels.replicas }} pod.
 
     # ── GROUP 2: API PERFORMANCE ──────────────────────────────────────────────
     - name: api.performance
